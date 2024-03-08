@@ -1,0 +1,169 @@
+---
+---
+
+<div class="login-container">
+    <div class="superlogin">
+      <div class="p-5">
+        <div class="text-center">
+          <h1 class="title-login">Bienvenido</h1>
+        </div>
+        <form class="user" id="login-form">
+          <div class="form-group">
+            <input
+              type="text"
+              class="form-control form-control-user"
+              id="username"
+              aria-describedby="emailHelp"
+              placeholder="Ingresa tu nombre de usuario..."
+              name="username"
+            />
+          </div>
+          <div class="form-group">
+            <input
+              type="password"
+              class="form-control form-control-user"
+              id="password"
+              placeholder="Contraseña"
+              name="password"
+            />
+          </div>
+          <button type="submit" class="btn-login">
+            Ingresar
+          </button>
+          <br />
+          <hr />
+        </form>
+        <script type="module">
+          document.getElementById("login-form").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+  
+            try {
+              const response = await fetch("/api/login", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, password }),
+              });
+  
+              if (response.ok) {
+                alert("Inicio de sesión exitoso");
+                window.location.href = 'http://localhost:4321/teacher';
+              } else if (response.status === 401) {
+                alert("Credenciales incorrectas");
+              } else {
+                alert("Error en la solicitud");
+              }
+            } catch (error) {
+              console.error("Error:", error);
+              alert("Error en la solicitud");
+            }
+          });
+        </script>
+      </div>
+    </div>
+  </div>
+<style>
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+.superlogin{
+  border-radius: 27px 0 0 27px;
+    -moz-border-radius: 27px 0 0 27px;
+    -webkit-border-radius: 27px 0 0 27px;
+    border: 3px solid #822f82;
+    padding: 2rem !important;
+    background-color: #ffffff;
+
+}
+
+.btn-login{
+  font-family: Arial;
+  display: flex;
+  color: #ffffff;
+  font-size: 20px;
+  padding: 1rem 6rem;
+  text-decoration: none;
+  -webkit-border-radius: 28px;
+  -moz-border-radius: 28px;
+  border-radius: 28px;
+  -webkit-box-shadow: 0px 1px 3px #000000;
+  -moz-box-shadow: 0px 1px 3px #000000;
+  box-shadow: 0px 1px 3px #000000;
+  text-shadow: 1px 1px 3px #000000;
+  border: solid #1c1c1c 2px;
+  background: #8a4af3;
+  align-items:center;
+}
+
+.btn-login:hover{
+    background: #000000;
+}
+
+.title-login{
+font-size: 26px;
+letter-spacing: 2px;
+word-spacing: 0px;
+color: #000000;
+font-weight: bold;
+text-decoration: none;
+font-style: normal;
+font-variant: small-caps;
+text-transform: capitalize;
+}
+
+.row{
+    display:flex;
+    flex-wrap:wrap;
+    margin-right:-.75rem;
+    margin-left:-.75rem
+}
+
+.col-lg-12{
+    background-color: white;
+    position:relative;
+    width:100%;
+    padding-right:5rem;
+    padding-left:5rem;
+    border-radius: 4rem;
+}
+
+
+.small{
+    color: gray;
+    font-size: 70%;
+}
+
+.text-center{text-align:center!important} @media (min-width:576px){.text-sm-left{text-align:left!important}.text-sm-right{text-align:right!important}.text-sm-center{text-align:center!important}}@media (min-width:768px){.text-md-left{text-align:left!important}.text-md-right{text-align:right!important}.text-md-center{text-align:center!important}}@media (min-width:992px){.text-lg-left{text-align:left!important}.text-lg-right{text-align:right!important}.text-lg-center{text-align:center!important}}@media (min-width:1200px){.text-xl-left{text-align:left!important}.text-xl-right{text-align:right!important}.text-xl-center{text-align:center!important}}
+
+form.user .custom-checkbox.small label{line-height:1.5rem}
+
+form.user .form-control-user{
+    font-size:.9rem;
+    padding:1rem 4rem; 
+    border-radius: 25px 25px 25px 25px;
+    -moz-border-radius: 25px 25px 25px 25px;
+    -webkit-border-radius: 25px 25px 25px 25px;
+    border: 2px solid #000000;
+    background-color: #fbf5c8;
+    color: #000000;
+}
+
+    form.user .btn-user{font-size:.8rem;border-radius:10rem;padding:.75rem 1rem}
+
+.form-group{margin-bottom:1rem}
+
+.form-group{
+    display:flex;
+    flex:0 0 auto;
+    flex-flow:row wrap;
+    align-items:center;
+    margin-bottom:0}
+
+</style>

@@ -1,0 +1,85 @@
+---
+import Useraudio from "./Useraudio.astro";
+---
+
+  <div>
+    <Useraudio />
+    <div class="userCam">
+      <video id="videoUser" autoplay="true"></video>
+    </div>
+  </div>
+
+<style>
+
+
+
+  .form-group {
+    color: black;
+    text-align: center;
+    flex: 0 0 auto;
+    flex-flow: row wrap;
+    align-items: center;
+    margin-bottom: 0;
+  }
+
+  .userCam {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1000; /* Valor alto para estar en la parte delantera */
+  }
+
+  #videoUser {
+    height: 200px;
+    border-radius: 29px 29px 29px 29px;
+    -moz-border-radius: 29px 29px 29px 29px;
+    -webkit-border-radius: 29px 29px 29px 29px;
+    border: 4px solid #4100ff;
+  }
+
+  @media (max-width: 680px) {
+    #videoUser {
+      height: 120px;
+    }
+  }
+
+  @media (max-width: 415px) {
+    #videoUser {
+      height: 0px;
+      border-radius: none;
+      -moz-border-radius: none;
+      -webkit-border-radius: none;
+      border: none;
+      -webkit-box-shadow: none;
+      -moz-box-shadow: none;
+      box-shadow: none;
+    }
+  }
+</style>
+
+<script type="module">
+  async function initVideo() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
+
+      // Acceder al elemento de video y asignar el stream completo
+      const videoElement = document.getElementById("videoUser");
+      videoElement.srcObject = stream;
+    } catch (err) {
+      if (
+        err instanceof PermissionDeniedError ||
+        err instanceof NotAllowedError
+      ) {
+        showNotification(`No has permitido el uso de cámara`);
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    initVideo();
+  });
+</script>

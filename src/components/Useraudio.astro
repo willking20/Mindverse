@@ -1,0 +1,173 @@
+---
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Asegúrate de incluir annyang -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"
+    ></script>
+  </head>
+  <body>
+    <div class="audio-ask">
+      <button id="btnStart" class="btn-audio">Comenzar</button>
+      <button id="btnStop" class="btn-audio">Detener</button>
+      <button id="btnSend" class="btn-audio">Send</button>
+      <textarea
+        id="textArea"
+        placeholder="¿Esto es lo que quieres decir?"
+        class="group-text"
+        cols="30"
+        rows="1"></textarea>
+      <textarea
+        id="textRespuesta"
+        placeholder="Respuesta de la API"
+        class="group-text"
+        cols="30"
+        rows="1"
+        readonly></textarea>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const btnStart = document.getElementById("btnStart");
+        const btnStop = document.getElementById("btnStop");
+        const btnSend = document.getElementById("btnSend");
+        const textArea = document.getElementById("textArea");
+        const textRespuesta = document.getElementById("textRespuesta");
+    
+        let isRecording = false;
+    
+        function startSpeechRecognition() {
+          if (annyang) {
+            isRecording = true;
+            annyang.start({ autoRestart: false, lang: "es-ES" });
+            textArea.value = "Escuchando...";
+          } else {
+            alert("La librería annyang no está disponible.");
+          }
+        }
+    
+        function stopSpeechRecognition() {
+          isRecording = false;
+          annyang.abort();
+        }
+    
+        async function sendQuestion() {
+          try {
+            const question = textArea.value;
+    
+            if (!question) {
+              alert("Ingresa una pregunta antes de enviarla.");
+              return;
+            }
+    
+            const response = await fetch("api/ask", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ question }),
+            });
+    
+            if (!response.ok) {
+              throw new Error("Error al enviar la pregunta.");
+            }
+    
+            const responseData = await response.json();
+            textRespuesta.value = responseData.response;
+          } catch (error) {
+            console.error("Error:", error);
+            alert("Hubo un error al procesar la pregunta.");
+          }
+        }
+    
+        btnStart.addEventListener("click", startSpeechRecognition);
+        btnStop.addEventListener("click", stopSpeechRecognition);
+        btnSend.addEventListener("click", sendQuestion);
+    
+        annyang.addCallback("result", (phrases) => {
+          textArea.value = phrases[0];
+        });
+      });
+    </script>
+
+    <style>
+      .btn-audio {
+        font-family: Arial;
+        color: #ffffff;
+        font-size: 20px;
+        padding: 10px;
+        text-decoration: none;
+        -webkit-border-radius: 28px;
+        -moz-border-radius: 28px;
+        border-radius: 28px;
+        -webkit-box-shadow: 0px 1px 3px #000000;
+        -moz-box-shadow: 0px 1px 3px #000000;
+        box-shadow: 0px 1px 3px #000000;
+        text-shadow: 1px 1px 4px #666666;
+        border: solid #000000 2px;
+        background: -webkit-gradient(
+          linear,
+          0 0,
+          0 100%,
+          from(#b530f2),
+          to(#6305fa)
+        );
+      }
+
+      .group-text {
+        color: black;
+        background-color: white;
+        border-radius: 38px 38px 38px 38px;
+        -moz-border-radius: 38px 38px 38px 38px;
+        -webkit-border-radius: 38px 38px 38px 38px;
+        border: 2px solid #000000;
+        margin-top: 10px;
+      }
+
+      .audio-ask {
+        position: fixed;
+        bottom: 7%;
+        left: 50%;
+        transform: translate(-50%, 50%);
+        z-index: 1000; /* Valor alto para estar en la parte delantera */
+      }
+
+      @media (max-width: 700px) {
+        .audio-ask {
+          left: 25%;
+        }
+
+        .btn-audio {
+          font-size: 10px;
+        }
+        .group-text {
+          font-size: 10px;
+        }
+      }
+
+      @media (max-width: 415px) {
+        .audio-ask {
+          left: 35%;
+        }
+      }
+
+      @media (max-width: 280px) {
+        #videoUser {
+          height: 0px;
+          border-radius: none;
+          -moz-border-radius: none;
+          -webkit-border-radius: none;
+          border: none;
+          -webkit-box-shadow: none;
+          -moz-box-shadow: none;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </body>
+</html>
