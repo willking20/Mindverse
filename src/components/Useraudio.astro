@@ -22,6 +22,7 @@
         class="group-text"
         cols="30"
         rows="1"></textarea>
+        <!--
       <textarea
         id="textRespuesta"
         placeholder="Respuesta de la API"
@@ -29,6 +30,8 @@
         cols="30"
         rows="1"
         readonly></textarea>
+         -->
+        <audio id="audioPlayer" controls style="display: none;"></audio>
     </div>
 
     <script>
@@ -38,6 +41,9 @@
         const btnSend = document.getElementById("btnSend");
         const textArea = document.getElementById("textArea");
         const textRespuesta = document.getElementById("textRespuesta");
+        const audioPlayer = document.getElementById("audioPlayer");
+        const backgroundVideo = document.getElementById("background-video");
+        const audioAsk = document.querySelector(".audio-ask");
     
         let isRecording = false;
     
@@ -65,7 +71,8 @@
               return;
             }
     
-            const response = await fetch("api/ask", {
+            // Enviar pregunta a la API "api/ask"
+            const askResponse = await fetch("api/ask", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -73,15 +80,61 @@
               body: JSON.stringify({ question }),
             });
     
-            if (!response.ok) {
+            if (!askResponse.ok) {
               throw new Error("Error al enviar la pregunta.");
             }
     
-            const responseData = await response.json();
-            textRespuesta.value = responseData.response;
+            // Verificar si el textArea está escribiendo o tiene algún texto
+            if (textArea.value.trim() !== "") {
+              // Cambiar la fuente del video al "Hello 2.mp4" y configurar el bucle
+              backgroundVideo.src = "../../src/layouts/video/load.mp4";
+              backgroundVideo.loop = true;
+              backgroundVideo.play();
+            }
+    
+            const askData = await askResponse.json();
+    
+            // Enviar respuesta de "api/ask" a la API "api/voice"
+            const response = await fetch("api/voice", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ text: askData.response }), // Enviar la respuesta de "api/ask"
+            });
+    
+            if (!response.ok) {
+              throw new Error("Error al enviar la respuesta para la conversión de voz.");
+            }
+    
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+    
+            // Reproducir el archivo MP3
+            audioPlayer.src = blobUrl;
+            audioPlayer.play();
+    
+            // Agregar un evento para cambiar la fuente del video al "bye.mp4" cuando el audio termine
+            audioPlayer.addEventListener("ended", function () {
+              // Cambiar la fuente del video al "bye.mp4" y configurar el bucle
+              backgroundVideo.src = "../../src/layouts/video/bye.mp4";
+              backgroundVideo.loop = false;
+              backgroundVideo.play();
+              
+              // Ocultar el div con la clase audio-ask
+              audioAsk.style.display = "none";
+            });
+    
+            // Verificar si el textArea está escribiendo o tiene algún texto
+            if (textArea.value.trim() !== "") {
+              // Cambiar la fuente del video al "Hello 2.mp4" y configurar el bucle
+              backgroundVideo.src = "../../src/layouts/video/response.mp4";
+              backgroundVideo.loop = true;
+              backgroundVideo.play();
+            }
           } catch (error) {
             console.error("Error:", error);
-            alert("Hubo un error al procesar la pregunta.");
+            alert("Hubo un error al procesar la pregunta o la respuesta de la conversión de voz.");
           }
         }
     
