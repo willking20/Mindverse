@@ -26,5 +26,8 @@
   "devDependencies": {
     "flowbite": "^2.3.0",
     "flowbite-svelte": "^0.44.24"
+  },
+  "pnpm": {
+    "version": "8.15.4"
   }
 }
