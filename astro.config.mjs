@@ -11,7 +11,7 @@ export default defineConfig({
   integrations: [
     tailwind(), 
     svelte()],
-  output: "server",
+  output: "docs",
   adapter: netlify(),
   base: "/Myndverse/"
 });
