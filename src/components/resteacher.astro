@@ -1,6 +1,6 @@
 ---
 import Usercam from "./usercam.astro";
-import Videoavatar from "./videoavatar.astro"
+import Videoavatar from "./videoavatar.astro";
 ---
 
 <div>
@@ -10,21 +10,28 @@ import Videoavatar from "./videoavatar.astro"
   </div>
 </div>
 
+<script setup>
+  // Importar backgroundVideo de Astro para asegurar que está disponible en tiempo de compilación
+  import { onCleanup } from "svelte";
 
-<script>
   const backgroundVideo = document.getElementById("background-video");
 
   // Evento que se ejecuta al finalizar el video "hi.mp4"
-  backgroundVideo.addEventListener("ended", function () {
+  onCleanup(() => {
+    backgroundVideo.removeEventListener("ended", handleVideoEnd);
+  });
+
+  function handleVideoEnd() {
     // Cambiar la fuente del video al "Hello 2.mp4" y configurar el bucle
     backgroundVideo.src = "../../src/layouts/video/Hello 2.mp4";
     backgroundVideo.loop = true;
     backgroundVideo.play();
-  });
+  }
+
+  backgroundVideo.addEventListener("ended", handleVideoEnd);
 </script>
 
 <style>
-
   .usercam-container {
     position: fixed;
     bottom: 0;
@@ -32,4 +39,3 @@ import Videoavatar from "./videoavatar.astro"
     z-index: 2; /* Valor más alto para estar delante del video */
   }
 </style>
-

@@ -14,5 +14,4 @@ export default defineConfig({
   adapter: netlify({
     edgeMiddleware: true
   }),
-  base: "/Myndverse/"
 });

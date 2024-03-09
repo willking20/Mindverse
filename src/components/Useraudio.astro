@@ -3,150 +3,153 @@
 
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Asegúrate de incluir annyang -->
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"
-    ></script>
-  </head>
-  <body>
-    <div class="audio-ask">
-      <button id="btnStart" class="btn-audio">Comenzar</button>
-      <button id="btnStop" class="btn-audio">Detener</button>
-      <button id="btnSend" class="btn-audio">Send</button>
-      <textarea
-        id="textArea"
-        placeholder="¿Esto es lo que quieres decir?"
-        class="group-text"
-        cols="30"
-        rows="1"></textarea>
-        <!--
-      <textarea
-        id="textRespuesta"
-        placeholder="Respuesta de la API"
-        class="group-text"
-        cols="30"
-        rows="1"
-        readonly></textarea>
-         -->
-        <audio id="audioPlayer" controls style="display: none;"></audio>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Asegúrate de incluir annyang -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script>
+</head>
+<body>
+  <div class="audio-ask">
+    <button id="btnStart" class="btn-audio">Comenzar</button>
+    <button id="btnStop" class="btn-audio">Detener</button>
+    <button id="btnSend" class="btn-audio">Send</button>
+    <textarea
+      id="textArea"
+      placeholder="¿Esto es lo que quieres decir?"
+      class="group-text"
+      cols="30"
+      rows="1"></textarea>
+    <!--
+    <textarea
+      id="textRespuesta"
+      placeholder="Respuesta de la API"
+      class="group-text"
+      cols="30"
+      rows="1"
+      readonly></textarea>
+    -->
+    <audio id="audioPlayer" controls style="display: none;"></audio>
+  </div>
 
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const btnStart = document.getElementById("btnStart");
-        const btnStop = document.getElementById("btnStop");
-        const btnSend = document.getElementById("btnSend");
-        const textArea = document.getElementById("textArea");
-        const textRespuesta = document.getElementById("textRespuesta");
-        const audioPlayer = document.getElementById("audioPlayer");
-        const backgroundVideo = document.getElementById("background-video");
-        const audioAsk = document.querySelector(".audio-ask");
-    
-        let isRecording = false;
-    
-        function startSpeechRecognition() {
-          if (annyang) {
-            isRecording = true;
-            annyang.start({ autoRestart: false, lang: "es-ES" });
-            textArea.value = "Escuchando...";
-          } else {
-            alert("La librería annyang no está disponible.");
-          }
+  <script setup>
+    import { onMount } from 'svelte';
+  
+    let isRecording = false;
+  
+    function startSpeechRecognition() {
+      if (window.annyang) {
+        isRecording = true;
+        window.annyang.start({ autoRestart: false, lang: "es-ES" });
+        $textArea.value = "Escuchando...";
+      } else {
+        alert("La librería annyang no está disponible.");
+      }
+    }
+  
+    function stopSpeechRecognition() {
+      isRecording = false;
+      window.annyang.abort();
+    }
+  
+    async function sendQuestion() {
+      try {
+        const question = $textArea.value;
+  
+        if (!question) {
+          alert("Ingresa una pregunta antes de enviarla.");
+          return;
         }
-    
-        function stopSpeechRecognition() {
-          isRecording = false;
-          annyang.abort();
-        }
-    
-        async function sendQuestion() {
-          try {
-            const question = textArea.value;
-    
-            if (!question) {
-              alert("Ingresa una pregunta antes de enviarla.");
-              return;
-            }
-    
-            // Enviar pregunta a la API "api/ask"
-            const askResponse = await fetch("api/ask", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ question }),
-            });
-    
-            if (!askResponse.ok) {
-              throw new Error("Error al enviar la pregunta.");
-            }
-    
-            // Verificar si el textArea está escribiendo o tiene algún texto
-            if (textArea.value.trim() !== "") {
-              // Cambiar la fuente del video al "Hello 2.mp4" y configurar el bucle
-              backgroundVideo.src = "../../src/layouts/video/load.mp4";
-              backgroundVideo.loop = true;
-              backgroundVideo.play();
-            }
-    
-            const askData = await askResponse.json();
-    
-            // Enviar respuesta de "api/ask" a la API "api/voice"
-            const response = await fetch("api/voice", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ text: askData.response }), // Enviar la respuesta de "api/ask"
-            });
-    
-            if (!response.ok) {
-              throw new Error("Error al enviar la respuesta para la conversión de voz.");
-            }
-    
-            const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
-    
-            // Reproducir el archivo MP3
-            audioPlayer.src = blobUrl;
-            audioPlayer.play();
-    
-            // Agregar un evento para cambiar la fuente del video al "bye.mp4" cuando el audio termine
-            audioPlayer.addEventListener("ended", function () {
-              // Cambiar la fuente del video al "bye.mp4" y configurar el bucle
-              backgroundVideo.src = "../../src/layouts/video/bye.mp4";
-              backgroundVideo.loop = false;
-              backgroundVideo.play();
-              
-              // Ocultar el div con la clase audio-ask
-              audioAsk.style.display = "none";
-            });
-    
-            // Verificar si el textArea está escribiendo o tiene algún texto
-            if (textArea.value.trim() !== "") {
-              // Cambiar la fuente del video al "Hello 2.mp4" y configurar el bucle
-              backgroundVideo.src = "../../src/layouts/video/response.mp4";
-              backgroundVideo.loop = true;
-              backgroundVideo.play();
-            }
-          } catch (error) {
-            console.error("Error:", error);
-            alert("Hubo un error al procesar la pregunta o la respuesta de la conversión de voz.");
-          }
-        }
-    
-        btnStart.addEventListener("click", startSpeechRecognition);
-        btnStop.addEventListener("click", stopSpeechRecognition);
-        btnSend.addEventListener("click", sendQuestion);
-    
-        annyang.addCallback("result", (phrases) => {
-          textArea.value = phrases[0];
+  
+        // Enviar pregunta a la API "api/ask"
+        const askResponse = await fetch("api/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ question }),
         });
-      });
-    </script>
+  
+        if (!askResponse.ok) {
+          throw new Error("Error al enviar la pregunta.");
+        }
+  
+        // Verificar si el textArea está escribiendo o tiene algún texto
+        if ($textArea.value.trim() !== "") {
+          // Cambiar la fuente del video al "Hello 2.mp4" y configurar el bucle
+          $backgroundVideo.src = "../../src/layouts/video/load.mp4";
+          $backgroundVideo.loop = true;
+          $backgroundVideo.play();
+        }
+  
+        const askData = await askResponse.json();
+  
+        // Enviar respuesta de "api/ask" a la API "api/voice"
+        const response = await fetch("api/voice", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: askData.response }), // Enviar la respuesta de "api/ask"
+        });
+  
+        if (!response.ok) {
+          throw new Error("Error al enviar la respuesta para la conversión de voz.");
+        }
+  
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+  
+        // Reproducir el archivo MP3
+        $audioPlayer.src = blobUrl;
+        $audioPlayer.play();
+  
+        // Agregar un evento para cambiar la fuente del video al "bye.mp4" cuando el audio termine
+        $audioPlayer.addEventListener("ended", function () {
+          // Cambiar la fuente del video al "bye.mp4" y configurar el bucle
+          $backgroundVideo.src = "../../src/layouts/video/bye.mp4";
+          $backgroundVideo.loop = false;
+          $backgroundVideo.play();
+  
+          // Ocultar el div con la clase audio-ask
+          $audioAsk.style.display = "none";
+        });
+  
+        // Verificar si el textArea está escribiendo o tiene algún texto
+        if ($textArea.value.trim() !== "") {
+          // Cambiar la fuente del video al "Hello 2.mp4" y configurar el bucle
+          $backgroundVideo.src = "../../src/layouts/video/response.mp4";
+          $backgroundVideo.loop = true;
+          $backgroundVideo.play();
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Hubo un error al procesar la pregunta o la respuesta de la conversión de voz.");
+      }
+    }
+  
+    onMount(() => {
+      const btnStart = document.getElementById("btnStart");
+      const btnStop = document.getElementById("btnStop");
+      const btnSend = document.getElementById("btnSend");
+      const $textArea = document.getElementById("textArea");
+      const $textRespuesta = document.getElementById("textRespuesta");
+      const $audioPlayer = document.getElementById("audioPlayer");
+      const $backgroundVideo = document.getElementById("background-video");
+      const $audioAsk = document.querySelector(".audio-ask");
+  
+      btnStart.addEventListener("click", startSpeechRecognition);
+      btnStop.addEventListener("click", stopSpeechRecognition);
+      btnSend.addEventListener("click", sendQuestion);
+  
+      if (window.annyang) {
+        window.annyang.addCallback("result", (phrases) => {
+          $textArea.value = phrases[0];
+        });
+      }
+    });
+  </script>
+
 
     <style>
       .btn-audio {
